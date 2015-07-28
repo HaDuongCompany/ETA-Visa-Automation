@@ -1,0 +1,199 @@
+*** Settings ***
+Library           Collections
+Library           Selenium2Library    10    5    Capture Page Screenshot
+Library           String
+Variables         ../resource/Variable.py
+Resource          ../resource/common_keywords.txt
+Resource          ../resource/ETAVisa_keywords.txt
+
+*** Test Cases ***
+bug
+    [Setup]
+    [Template]
+    ${Age}    Set Variable    ${InvalidDOB}
+    ${containStatus}    Run Keyword And Return Status    Should Contain    ${Age}    /
+    @{arrDOBInput}    Run Keyword If    ${containStatus}==True    Split String    ${Age}    /
+    ${DOBInput}    Set Variable    @{arrDOBInput}
+    @{arrRndvalue}    Run Keyword Unless    ${containStatus}==True    Get DOB auto by age    ${Age}
+    ${rndValue}    Set Variable    @{arrRndvalue}
+    ${finalValue}    Set Variable If    ${containStatus}==True    ${DOBInput}    ${rndValue}
+    @{arrvalue}    Set Variable    ${finalValue}
+
+Login and Take ETA visa EA with valid data
+    [Setup]
+    : FOR    ${item}    IN RANGE    1    5
+    \    Login and Take ETA Visa EA    Expected=pass
+    [Teardown]
+
+Login and Take ETA Visa EA with invalid data
+    [Documentation]    - ${ID}=${EMPTY}
+    ...    - ${Desc}=${EMPTY}
+    ...    - ${Expected}=${EMPTY}
+    ...    - ${criminal}=[Valid]
+    ...    - ${FirstName}=[Valid]
+    ...    - ${MiddleName} =[Valid]
+    ...    - ${FamilyName}=[Valid]
+    ...    - ${Othernames}=[Valid]
+    ...    - ${DOB}=[Valid]
+    ...    - ${Gender}=[Valid]
+    ...    - ${COB}=[Valid]
+    ...    - ${PN}=[Valid]
+    ...    - ${CPN}=[Valid]
+    ...    - ${PNational}=[Valid]
+    ...    - ${Nati_Ident_Num}=[Valid]
+    ...    - ${OpCtizenship}=[Valid]
+    ...    - ${Citizenship}=[Valid]
+    ...    - ${PID}=[Valid]
+    ...    - ${COP}=[Valid]
+    ...    - ${NINum}=[Valid]
+    ...    - ${PofIssue}=[Valid]
+    ...    - ${PExpD}=[Valid]
+    ...    - ${OpFlyBook}=[Valid]
+    ...    - ${DateTime}=[Valid]
+    ...    - ${VisaType}=[Valid]
+    ...    - ${deltaDayBook}=[Valid]
+    ...    - ${Add1}=[Valid]
+    ...    - ${Add2}=[Valid]
+    ...    - ${Add3}=[Valid]
+    ...    - ${Country}=[Valid]
+    ...    - ${Area}=[Valid]
+    ...    - ${Number}=[Valid]
+    ...    - ${Work1}=[Valid]
+    ...    - ${Work2}=[Valid]
+    ...    - ${Work3}=[Valid]
+    ...    - ${Mobile1}=[Valid]
+    ...    - ${Mobile2}=[Valid]
+    ...    - ${Email}=[Valid]
+    [Setup]
+    [Template]    Login and Take ETA Visa EA
+    #TC01    No select option criminal convictions    Expected=fail    criminal=${EMPTY}
+    #TC02    have any criminal convictions? [Yes]    Expected=fail    criminal=${Yes}
+    #TC03    Desc=Valid Data    Expected=pass    criminal=${No}
+    #TC04    EMPTY FirstName field    Expected=fail    criminal=${No}    FirstName=${EMPTY}
+    ##TC05    EMPTY Middle Name field    Expected=pass    criminal=${No}    MiddleName=${EMPTY}
+    #TC06    EMPTY Family Name Field    Expected=fail    criminal=${No}    FamilyName=${EMPTY}
+    #TC06    No choose Date of Birth    Expected=fail    criminal=${No}    DOB=${EMPTY}
+    #TC07    Select invalid Date of Bifth    Expected=fail    criminal=${No}    DOB=${InvalidDOB}
+    #TC08    No select Gender    Expected=fail    criminal=${No}    Gender=${EMPTY}
+    #TC09    No select Country of Birth    Expected=fail    criminal=${No}    COB=${EMPTY}
+    #TC10    EMPTY Passport Number    Expected=fail    criminal=${No}    PN=${EMPTY}
+    #TC11    EMPTY Confirm Passport Number    Expected=fail    criminal=${No}    CPN=${EMPTY}
+    #TC12    Enter invalid Confirm Passport Number    Expected=fail    criminal=${No}    PN=12345a    CPN=a12345
+    #TC13    No select Passport Nationality    Expected=fail    criminal=${No}    PNational=${EMPTY}
+    #TC14    Does the applicant hold more than one citizenship?[Yes]    Expected=fail    criminal=${No}    OpCtizenship=${Yes}
+    #TC15    Does the applicant hold more than one citizenship?[No]    Expected=pass    OpCtizenship=${No}
+    #TC16    Invalid Date Passport Issue    Expected=fail    criminal=${No}    PID=${InvalidPID}
+    #    Select Country have Identify number    Expected=fail    criminal=${No}    COP=DNK - Denmark    Nati_Ident_Num=${EMPTY}
+    #TC17    No select Country of Passport    Expected=fail    criminal=${No}    COP=${EMPTY}
+    #TC18    EMPTY Passport Issuing Authority    Expected=fail    criminal=${No}    NINum=${EMPTY}
+    #TC19    No select Passport Expiry Date    Expected=fail    criminal=${No}    PExpD=${EMPTY}
+    #TC20    Enter invalid Passport Expiry Date. eg. current day    Expected=fail    criminal=${No}    PExpD=0
+    #TC21    Enter invalid Passport Expiry Date. eg. 30/02/2016    Expected=fail    criminal=${No}    PExpD=${InvalidFD}
+    #ok    No select "Do you have a flight booked to Australia?"    Expected=fail    criminal=${No}    OpFlyBook=${EMPTY}
+    #TC    Do you have a flight booked to Australia?[Yes]. No select date time to fly    Expected=fail    criminal=${No}    OpFlyBook=${Yes}    deltaDayBook=${EMPTY}
+    #TC22    Do you have a flight booked to Australia?[Yes]. Random date Time to fly    Expected=Pass    criminal=${No}    OpFlyBook=${Yes}    #deltaDayBook=[Valid]==>random
+    #TC22    Do you have a flight booked to Australia?[Yes] and select current day to flyght    Expected=fail    criminal=${No}    OpFlyBook=${Yes}    deltaDayBook=0    #current day, Pass????????
+    #TC22    Do you have a flight booked to Australia?[Yes] and select invalid date in furture day to flyght    Expected=fail    criminal=${No}    OpFlyBook=${Yes}    deltaDayBook=30/02/2016
+    \    Do you have a flight booked to Australia?[Yes] and select valid date in past date to flyght    Expected=fail    criminal=${No}    OpFlyBook=${Yes}    deltaDayBook=01/03/2015    #past date
+    \    ...    #current day, Pass????????
+    #TC23    Do you have a flight booked to Australia?[No]    Expected=Pass    criminal=${No}    OpFlyBook=${No}    #deltaDayBook=[Valid]==>random
+    #TC24    No select Visa Type    Expected=fail    criminal=${No}    VisaType=${EMPTY}
+
+Login To Visa Bureau
+    [Documentation]    ${ID}=${EMPTY} | ${Desc}=${EMPTY} | ${Expected}=${EMPTY} | ${email}=${EMPTY} | ${password}=${EMPTY}
+    [Setup]
+    [Template]    Login To Visa Bureau
+    #invalid cases
+    TC01    Empty both Email and Password    fail
+    TC02    Empty Email    pass    ${PasswordValid}
+    #TC03    Empty Password    fail    ksdfasfagsdg@yahoo.com
+    #TC04    Enter invalid Email    fail    erngdfdfi1234^&%*    ${PasswordValid}
+    #TC05    Enter invalid Password    fail    ${UserValid}    *&^$dfjsdf124
+    #TC06    Enter invalid both Email and Password    fail    erngdfdfi1234^&%*    *&^$dfjsdf124
+    #TC07    Enter valid Email and have space in start or end    fail    \ Kenji_inlove@yahoo.com    ${PasswordValid}
+    #TC08    Enter valid Password and have space in start or end    fail    ${UserValid}    \ 123456a$
+    #valid cases
+    TC09    Enter valid both Email and Password    pass    ${UserValid}    ${PasswordValid}
+    TC03    Empty Password    pass    ksdfasfagsdg@yahoo.com
+    [Teardown]
+
+Register for a new ETA account with invalid data
+    [Documentation]    TC#|Desc|Expected|STT field|Title|Gender|FirstName|LastName|Country of Residence|Date of birth|Contact Number|Email|Confirm Email|Nominate a password
+    ...
+    ...    . [Valid]: Tự động sinh dữ liệu valid
+    ...    . None: Không chọn dữ liệu hoặc không nhập dữ liệu
+    [Setup]
+    [Template]    Register New ETA account
+    TC01    No select Title    Please Select    [None]    [Valid]    [Valid]    [Valid]
+    ...    [Valid]    [Valid]    [Valid]    [Valid]    [Valid]    [Valid]
+    ...    [Valid]
+    TC02    No select Gender    Please Select    [Valid]    [None]    [Valid]    [Valid]
+    ...    [Valid]    [Valid]    [Valid]    [Valid]    [Valid]    [Valid]
+    ...    [Valid]
+    TC03    No enter first name    Please Enter    [Valid]    [Valid]    [None]    [Valid]
+    ...    [Valid]    [Valid]    [Valid]    [Valid]    [Valid]    [Valid]
+    ...    [Valid]
+    TC04    No enter last name    Please Enter    [Valid]    [Valid]    [Valid]    [None]
+    ...    [Valid]    [Valid]    [Valid]    [Valid]    [Valid]    [Valid]
+    ...    [Valid]
+    TC05    No select Country of residence    Please Select    [Valid]    [Valid]    [Valid]    [Valid]
+    ...    [None]    [Valid]    [Valid]    [Valid]    [Valid]    [Valid]
+    ...    [Valid]
+    TC06    No select Date of birth    Please Enter Valid Date    [Valid]    [Valid]    [Valid]    [Valid]
+    ...    [Valid]    [None]    [Valid]    [Valid]    [Valid]    [Valid]
+    ...    [Valid]
+    TC07    No enter contact number    Please Enter    [Valid]    [Valid]    [Valid]    [Valid]
+    ...    [Valid]    [Valid]    [None]    [Valid]    [Valid]    [Valid]
+    ...    [Valid]
+    TC08    Enter contact number with special charecter eg -, +, ()    Please Enter    [Valid]    [Valid]    [Valid]    [Valid]
+    ...    [Valid]    [Valid]    ()-+abc 1234    [Valid]    [Valid]    [Valid]
+    ...    [Valid]
+    TC09    Enter contact mobile with special charecter eg -, +, ()    Please enter a valid number    [Valid]    [Valid]    [Valid]    [Valid]
+    ...    [Valid]    [Valid]    [Valid]    ()-+abc 1234    [Valid]    [Valid]
+    ...    [Valid]
+    TC10    Enter a invalid email    Please enter a valid email address    [Valid]    [Valid]    [Valid]    [Valid]
+    ...    [Valid]    [Valid]    [Valid]    [Valid]    abcdefg    [Valid]
+    ...    [Valid]
+    TC11    Confirm incorrect email    Confirm email [Valid]    [Valid]    [Valid]    [Valid]    [Valid]
+    ...    [Valid]    [Valid]    [Valid]    [Valid]    ${EMPTY}    [Valid]
+    ...    [Valid]
+    TC12    Blank Password    Please enter a password    [Valid]    [Valid]    [Valid]    [Valid]
+    ...    [Valid]    [Valid]    [Valid]    [Valid]    [Valid]    [Valid]
+    ...    ${EMPTY}
+    TC13    Enter Password use symboy (), _, -, +    Please enter a valid password    [Valid]    [Valid]    [Valid]    [Valid]
+    ...    [Valid]    [Valid]    [Valid]    [Valid]    [Valid]    [Valid]
+    ...    ()_+-123456
+    TC14    Enter Password use symboy (), _, -, +    Please enter a valid password    [Valid]    [Valid]    [Valid]    [Valid]
+    ...    [Valid]    [Valid]    [Valid]    [Valid]    [Valid]    [Valid]
+    ...    123456()_+-
+    TC15    Enter Password length <6    Please enter a valid password    [Valid]    [Valid]    [Valid]    [Valid]
+    ...    [Valid]    [Valid]    [Valid]    [Valid]    [Valid]    [Valid]
+    ...    12345
+    TC16    Enter Password have space in string    Please enter a valid password    [Valid]    [Valid]    [Valid]    [Valid]
+    ...    [Valid]    [Valid]    [Valid]    [Valid]    [Valid]    [Valid]
+    ...    12345 67890
+    TC17    Enter Password have blank in head or end    N/A    [Valid]    [Valid]    [Valid]    [Valid]
+    ...    [Valid]    [Valid]    [Valid]    [Valid]    [Valid]    [Valid]
+    ...    [Valid]
+    TC18    Enter Data valid to fields    N/A    [Valid]    [Valid]    [Valid]    [Valid]
+    ...    [Valid]    [Valid]    [Valid]    [Valid]    [Valid]    [Valid]
+    ...    [Valid]
+    [Teardown]
+
+Register for a new ETA account with valid data
+    [Setup]
+    : FOR    ${item}    IN RANGE    1    5
+    \    Register New ETA account    Expected=pass
+    [Teardown]
+
+bug2
+    [Template]
+    ${containStatus}    Run Keyword And Return Status    Should Contain    ${InvalidDOB}    /
+    @{DOBValid}    Run Keyword If    ${containStatus}==True    Split String    ${InvalidDOB}    /
+    @{rndDOB}    Run Keyword Unless    ${containStatus}==True    Get DOB auto by age    34
+    ${finalValue}    Set Variable If    ${containStatus}==True    @{DOBValid}
+    @{Db}    Set Variable    @{DOBValid}
+
+bug1
+    ${result}    Is One Year Gone    28-07-2015
+    ${result2}    Generate Travel Plan Date    7

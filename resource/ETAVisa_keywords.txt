@@ -1,0 +1,392 @@
+*** Settings ***
+Library           Collections
+Library           Selenium2Library    10    5    Capture Page Screenshot
+Library           String
+Library           Collections
+Variables         Variable.py
+Resource          common_keywords.txt
+
+*** Variables ***
+${UserValid}      Kenji_inlove@yahoo.com
+${PasswordValid}    123456a$
+${Yes}            1
+${No}             0
+@{InvalidDOB}     30    02    1990
+${InvalidDOB}     30/02/1990
+${InvalidPID}     30/02/2008
+${InvalidFD}      30/02/2017
+
+*** Keywords ***
+SetUp
+    Open Browser    https://assessments.visabureau.com/australia/assessment/eta/default.aspx
+    Maximize Browser Window
+    #Wait Until Element Is Visible    id=ctl00_ContentPlaceHolder2_ibtnContinue
+    [Teardown]
+
+Select Other citizen frome List
+    [Arguments]    ${Othercitizen}
+    ${ListOthercitizen}    Get List Items    id=ctl00_ContentPlaceHolder2_ucEtaVisa_ddlOtherCitizenship1
+    Remove Values From List    ${ListOthercitizen}    ** Select citizenship country **
+    ${length}    Get Length    ${ListOthercitizen}
+    ${index}    Evaluate    random.randint(0, ${length})    random,sys
+    Run Keyword If    '${Othercitizen}'!='${EMPTY}'    Select From List    id=ctl00_ContentPlaceHolder2_ucEtaVisa_ddlOtherCitizenship1    ${ListOthercitizen[${index}]}
+    #'${Othercitizen}'=='${EMPTY}'    Không select dropdown list
+
+Select Country of Passport
+    [Arguments]    ${COP}
+    Run Keyword If    '${COP}'!='[Valid]'    Run Keywords    Select From List    id=ctl00_ContentPlaceHolder2_ucEtaVisa_DropdownlistPassportIssuingState    ${COP}    AND
+    ...    Return From Keyword
+    ${ListCountryPP}    Get List Items    id=ctl00_ContentPlaceHolder2_ucEtaVisa_DropdownlistPassportIssuingState
+    Remove Values From List    ${ListCountryPP}    - - - - - - - - - - - - - - - - - - - - - - -    ** Select country **
+    ${length}    Get Length    ${ListCountryPP}
+    ${index}    Evaluate    random.randint(0, ${length}-1)    random,sys
+    Select From List    id=ctl00_ContentPlaceHolder2_ucEtaVisa_DropdownlistPassportIssuingState    ${ListCountryPP[${index}]}
+
+Select Passport Nationality
+    ${ListPPNational}    Get List Items    id=ctl00_ContentPlaceHolder2_ucEtaVisa_DropdownlistCitizenshipOnPassport
+    Remove Values From List    ${ListPPNational}    ** Select country **
+    ${length}    Get Length    ${ListPPNational}
+    ${index}    Evaluate    random.randint(0, ${length}-1)    random,sys
+    Select From List    id=ctl00_ContentPlaceHolder2_ucEtaVisa_DropdownlistCitizenshipOnPassport    ${ListPPNational[${index}]}
+
+Select Passport Issue
+    [Arguments]    ${PPIssueDate}
+    ${containStatus}    Run Keyword And Return Status    Should Contain    ${PPIssueDate}    /
+    Run Keyword If    ${containStatus}==True    Run Keywords    Select item from Listbox DOB    id=ctl00_ContentPlaceHolder2_ucEtaVisa_MultiSegmentDataEntryPassportIssueDate_1    id=ctl00_ContentPlaceHolder2_ucEtaVisa_MultiSegmentDataEntryPassportIssueDate_2    id=ctl00_ContentPlaceHolder2_ucEtaVisa_MultiSegmentDataEntryPassportIssueDate_3
+    ...    ${PPIssueDate}    1    AND    Return From Keyword
+    ${ListYear}    Get List Items    id=ctl00_ContentPlaceHolder2_ucEtaVisa_MultiSegmentDataEntryPassportIssueDate_3
+    Remove Values From List    ${ListYear}    Year
+    ${length}    Get Length    ${ListYear}
+    ${N_Year}    Evaluate    random.randint(0, ${length}-1)    random,sys
+    Select item from Listbox DOB    id=ctl00_ContentPlaceHolder2_ucEtaVisa_MultiSegmentDataEntryPassportIssueDate_1    id=ctl00_ContentPlaceHolder2_ucEtaVisa_MultiSegmentDataEntryPassportIssueDate_2    id=ctl00_ContentPlaceHolder2_ucEtaVisa_MultiSegmentDataEntryPassportIssueDate_3    ${N_Year}    1
+
+Select Passport Expiry
+    [Arguments]    ${PPExpiryDate}
+    ${containStatus}    Run Keyword And Return Status    Should Contain    ${PPExpiryDate}    /
+    Run Keyword If    ${containStatus}==True    Run Keywords    Select item from Listbox FOB    id=ctl00_ContentPlaceHolder2_ucEtaVisa_MultiSegmentDataEntryPassportExpiryDate_1    id=ctl00_ContentPlaceHolder2_ucEtaVisa_MultiSegmentDataEntryPassportExpiryDate_2    id=ctl00_ContentPlaceHolder2_ucEtaVisa_MultiSegmentDataEntryPassportExpiryDate_3
+    ...    ${PPExpiryDate}    AND    Return From Keyword
+    ${year}    Get List Items    id=ctl00_ContentPlaceHolder2_ucEtaVisa_MultiSegmentDataEntryPassportExpiryDate_3
+    Remove Values From List    ${year}    Year
+    ${length}    Get Length    ${year}
+    ${N_Year}    Evaluate    random.randint(1, ${length}-1)    random,sys
+    Select item from Listbox FOB    id=ctl00_ContentPlaceHolder2_ucEtaVisa_MultiSegmentDataEntryPassportExpiryDate_1    id=ctl00_ContentPlaceHolder2_ucEtaVisa_MultiSegmentDataEntryPassportExpiryDate_2    id=ctl00_ContentPlaceHolder2_ucEtaVisa_MultiSegmentDataEntryPassportExpiryDate_3    ${N_Year}
+
+Select Country of Birth
+    ${ListCountryPP}    Get List Items    id=ctl00_ContentPlaceHolder2_ucEtaVisa_DropdownlistCountryOfBirth
+    Remove Values From List    ${ListCountryPP}    ** Select country **
+    ${length}    Get Length    ${ListCountryPP}
+    ${index}    Evaluate    random.randint(0, ${length}-1)    random,sys
+    Select From List    id=ctl00_ContentPlaceHolder2_ucEtaVisa_DropdownlistCountryOfBirth    ${ListCountryPP[${index}]}
+
+Select Visa Type
+    [Arguments]    ${VisaType}
+    ${ListVisaType}    Get List Items    id=ctl00_ContentPlaceHolder2_ucEtaVisa_DropdownlistTypeOfVisa
+    Remove Values From List    ${ListVisaType}    ** Select types **
+    ${length}    Get Length    ${ListVisaType}
+    ${index}    Evaluate    random.randint(0, ${length}-1)    random,sys
+    Run Keyword If    '${VisaType}'!='${EMPTY}'    Select From List    id=ctl00_ContentPlaceHolder2_ucEtaVisa_DropdownlistTypeOfVisa    ${ListVisaType[${index}]}
+
+Select date to entry or book a fligth to Au
+    [Arguments]    ${deltaDay}    ${BookFlyght}
+    [Documentation]    - ${deltaDay} == 0: current day
+    ...    == 1: past day
+    ...
+    ...
+    ...    | ${BookFlyght}
+    ${containStatus}    Run Keyword And Return Status    Should Contain    ${deltaDay}    /
+    Run Keyword If    ${containStatus}==True and ${BookFlyght}==0    Run Keywords    Select item from Listbox FOB    id=ctl00_ContentPlaceHolder2_ucEtaVisa_MultiSegmentDataEntryAustralianDeptDate_1    id=ctl00_ContentPlaceHolder2_ucEtaVisa_MultiSegmentDataEntryAustralianDeptDate_2    id=ctl00_ContentPlaceHolder2_ucEtaVisa_MultiSegmentDataEntryAustralianDeptDate_3
+    ...    ${deltaDay}    AND    Return From Keyword
+    Run Keyword If    ${containStatus}==True and ${BookFlyght}==1    Run Keywords    Select item from Listbox FOB    id=ctl00_ContentPlaceHolder2_ucEtaVisa_MultiSegmentDataEntryAustralianFlightDate_1    id=ctl00_ContentPlaceHolder2_ucEtaVisa_MultiSegmentDataEntryAustralianFlightDate_2    id=ctl00_ContentPlaceHolder2_ucEtaVisa_MultiSegmentDataEntryAustralianFlightDate_3
+    ...    ${deltaDay}    AND    Select Time of Future Fligth Book    AND    Return From Keyword
+    ${locat}    Set Variable If    ${BookFlyght}==0    id=ctl00_ContentPlaceHolder2_ucEtaVisa_MultiSegmentDataEntryAustralianDeptDate_3    id=ctl00_ContentPlaceHolder2_ucEtaVisa_MultiSegmentDataEntryAustralianFlightDate_3
+    @{info1}    Get Length List Box    ${locat}    Year
+    #${length}    Set Variable    @{info1}[1]
+    ${N_Year}    Evaluate    random.randint(1, @{info1}[1]-1)    random,sys
+    ${N_Year}    Set Variable If    '${deltaDay}'=='[Valid]'    ${N_Year}    ${deltaDay}
+    Run Keyword If    ${BookFlyght}==0 and ${deltaDay} != 1    Run Keywords    Select item from Listbox FOB    id=ctl00_ContentPlaceHolder2_ucEtaVisa_MultiSegmentDataEntryAustralianDeptDate_1    id=ctl00_ContentPlaceHolder2_ucEtaVisa_MultiSegmentDataEntryAustralianDeptDate_2    id=ctl00_ContentPlaceHolder2_ucEtaVisa_MultiSegmentDataEntryAustralianDeptDate_3
+    ...    ${N_Year}    AND    Return From Keyword    #Neu khong dat ve thi chi can lay thong tin den day.
+    Run Keyword If    ${BookFlyght}==0 and ${deltaDay} == 1    Run Keywords    Select item from Listbox DOB    id=ctl00_ContentPlaceHolder2_ucEtaVisa_MultiSegmentDataEntryAustralianDeptDate_1    id=ctl00_ContentPlaceHolder2_ucEtaVisa_MultiSegmentDataEntryAustralianDeptDate_2    id=ctl00_ContentPlaceHolder2_ucEtaVisa_MultiSegmentDataEntryAustralianDeptDate_3
+    ...    ${N_Year}    ${deltaDay}    AND    Return From Keyword    #Neu khong dat ve thi chi can lay thong tin den day.
+    Run Keyword If    ${BookFlyght}==1 and ${deltaDay} != 1    Select item from Listbox FOB    id=ctl00_ContentPlaceHolder2_ucEtaVisa_MultiSegmentDataEntryAustralianFlightDate_1    id=ctl00_ContentPlaceHolder2_ucEtaVisa_MultiSegmentDataEntryAustralianFlightDate_2    id=ctl00_ContentPlaceHolder2_ucEtaVisa_MultiSegmentDataEntryAustralianFlightDate_3    ${N_Year}
+    Run Keyword If    ${BookFlyght}==1 and ${deltaDay} == 1    Select item from Listbox DOB    id=ctl00_ContentPlaceHolder2_ucEtaVisa_MultiSegmentDataEntryAustralianFlightDate_1    id=ctl00_ContentPlaceHolder2_ucEtaVisa_MultiSegmentDataEntryAustralianFlightDate_2    id=ctl00_ContentPlaceHolder2_ucEtaVisa_MultiSegmentDataEntryAustralianFlightDate_3    ${N_Year}
+    ...    ${deltaDay}
+    Select Time of Future Fligth Book
+
+Select Day of Future Fligth Book
+    [Arguments]    ${deltaDay}    ${BookFlyght}
+    ${containStatus}    Run Keyword And Return Status    Should Contain    ${deltaDay}    /
+    Run Keyword If    ${containStatus}==True and ${BookFlyght}==0    Run Keywords    Select item from Listbox FOB    id=ctl00_ContentPlaceHolder2_ucEtaVisa_MultiSegmentDataEntryAustralianDeptDate_1    id=ctl00_ContentPlaceHolder2_ucEtaVisa_MultiSegmentDataEntryAustralianDeptDate_2    id=ctl00_ContentPlaceHolder2_ucEtaVisa_MultiSegmentDataEntryAustralianDeptDate_3
+    ...    ${deltaDay}    AND    Return From Keyword
+    Run Keyword If    ${containStatus}==True and ${BookFlyght}==1    Run Keywords    Select item from Listbox FOB    id=ctl00_ContentPlaceHolder2_ucEtaVisa_MultiSegmentDataEntryAustralianFlightDate_1    id=ctl00_ContentPlaceHolder2_ucEtaVisa_MultiSegmentDataEntryAustralianFlightDate_2    id=ctl00_ContentPlaceHolder2_ucEtaVisa_MultiSegmentDataEntryAustralianFlightDate_3
+    ...    ${deltaDay}    AND    Select Time of Future Fligth Book    AND    Return From Keyword
+    ${locat}    Set Variable If    ${BookFlyght}==0    id=ctl00_ContentPlaceHolder2_ucEtaVisa_MultiSegmentDataEntryAustralianDeptDate_3    id=ctl00_ContentPlaceHolder2_ucEtaVisa_MultiSegmentDataEntryAustralianFlightDate_3
+    @{info1}    Get Length List Box    ${locat}    Year
+    #${length}    Set Variable    @{info1}[1]
+    ${N_Year}    Evaluate    random.randint(1, @{info1}[1]-1)    random,sys
+    ${N_Year}    Set Variable If    '${deltaDay}'=='[Valid]'    ${N_Year}    ${deltaDay}
+    Run Keyword If    ${BookFlyght}==0    Run Keywords    Select item from Listbox FOB    id=ctl00_ContentPlaceHolder2_ucEtaVisa_MultiSegmentDataEntryAustralianDeptDate_1    id=ctl00_ContentPlaceHolder2_ucEtaVisa_MultiSegmentDataEntryAustralianDeptDate_2    id=ctl00_ContentPlaceHolder2_ucEtaVisa_MultiSegmentDataEntryAustralianDeptDate_3
+    ...    ${N_Year}    AND    Return From Keyword    #Neu khong dat ve thi chi can lay thong tin den day.
+    Run Keyword If    ${BookFlyght}==1    Select item from Listbox FOB    id=ctl00_ContentPlaceHolder2_ucEtaVisa_MultiSegmentDataEntryAustralianFlightDate_1    id=ctl00_ContentPlaceHolder2_ucEtaVisa_MultiSegmentDataEntryAustralianFlightDate_2    id=ctl00_ContentPlaceHolder2_ucEtaVisa_MultiSegmentDataEntryAustralianFlightDate_3    ${N_Year}
+    Select Time of Future Fligth Book
+
+Select Time of Future Fligth Book
+    @{info2}    Get Length List Box    id=ctl00_ContentPlaceHolder2_ucEtaVisa_MultiSegmentDataEntryAustralianFlightTime_1    Hour
+    ${idHour}    Evaluate    random.randint(0, @{info2}[1]-1)    random,sys
+    ${ListHour}    Set Variable    @{info2}[0]
+    Select From List    id=ctl00_ContentPlaceHolder2_ucEtaVisa_MultiSegmentDataEntryAustralianFlightTime_1    ${ListHour[${idHour}]}
+    #Select minute
+    @{info3}    Get Length List Box    id=ctl00_ContentPlaceHolder2_ucEtaVisa_MultiSegmentDataEntryAustralianFlightTime_2    Min
+    ${idMin}    Evaluate    random.randint(0, @{info3}[1]-1)    random,sys
+    ${ListMin}    Set Variable    @{info3}[0]
+    Select From List    id=ctl00_ContentPlaceHolder2_ucEtaVisa_MultiSegmentDataEntryAustralianFlightTime_2    ${ListMin[${idMin}]}
+
+Register New ETA account
+    [Arguments]    ${ID}    ${Desc}    ${Expected}    ${Titles}    ${Gender}    ${FN}
+    ...    ${LN}    ${Country of Residence}    ${Date of birth}    ${Contact Number}    ${Contact Number2}    ${Email}
+    ...    ${Confirm Email}    ${PassWord}
+    [Documentation]    ${ID} | ${Desc} | ${Expected} | ${Titles} | ${Gender} | ${FN} | ${LN} | ${Country of Residence} | ${Date of birth} | ${Contact Number} | ${Contact Number2} | ${Email} | ${Confirm Email} | ${Nominate a password}
+    SetUp
+    Wait Until Element Is Visible    id=ctl00_ContentPlaceHolder2_ucPersonalInfoBasic_ddPersonTitle
+    Run Keyword If    '${Titles}'=='[Valid]'    Select item form Listbox    id=ctl00_ContentPlaceHolder2_ucPersonalInfoBasic_ddPersonTitle    ${TITLE}    ${Titles}
+    Run Keyword If    '${Gender}'=='[Valid]'    Select item form Listbox    id=ctl00_ContentPlaceHolder2_ucPersonalInfoBasic_ddPersonSex    ${GENDERS}    ${Gender}
+    Fill a input text    id=ctl00_ContentPlaceHolder2_ucPersonalInfoBasic_txtPersonFirstName    ${FN}    [LETTERS][NUMBERS]    6
+    Fill a input text    id=ctl00_ContentPlaceHolder2_ucPersonalInfoBasic_txtPersonLastName    ${LN}    [LETTERS][NUMBERS]    6
+    Run Keyword If    '${Country of Residence}'=='[Valid]'    Select item form Listbox    id=ctl00_ContentPlaceHolder2_ucPersonalInfoBasic_ddlResidentCountry    ${COUNTRYS}    ${Country of Residence}
+    ${AutoAge}    Evaluate    random.randint(1, 100)    random,sys
+    Run Keyword If    '${Date of birth}'=='[Valid]'    Select item from Listbox DOB    id=ctl00_ContentPlaceHolder2_ucPersonalInfoBasic_MultiSegmentDataEntryBirthDate_1    id=ctl00_ContentPlaceHolder2_ucPersonalInfoBasic_MultiSegmentDataEntryBirthDate_2    id=ctl00_ContentPlaceHolder2_ucPersonalInfoBasic_MultiSegmentDataEntryBirthDate_3    ${AutoAge}
+    Fill a input text    id=ctl00_ContentPlaceHolder2_ucPersonalInfoBasic_txtPhoneDaytimeNumber    ${Contact Number}    [NUMBERS]    11
+    Fill a input text    id=ctl00_ContentPlaceHolder2_ucPersonalInfoBasic_txtPersonalNumberMobile    ${Contact Number2}    [NUMBERS]    11
+    ${AutoEmail}    Generate and Fill a email    id=ctl00_ContentPlaceHolder2_ucPersonalInfoBasic_txtPersonalEmail    ${Email}
+    ${cfEmail}    Set Variable If    '${Confirm Email}' == '[Valid]'    ${AutoEmail}    ${Confirm Email}
+    Input Text    id=ctl00_ContentPlaceHolder2_ucPersonalInfoBasic_txtPersonalEmailRetype    ${cfEmail}    #Confirm password
+    Fill a input text    id=ctl00_ContentPlaceHolder2_ucPersonalInfoBasic_txtPassword    ${PassWord}    [NUMBERS]abcdef    8
+    Click Button    id=ctl00_ContentPlaceHolder2_ibtnContinue
+    #click Button    id=ctl00_ContentPlaceHolder2_ibtnAddApplicant
+    Verify Register for a new ETA account    ${Expected}
+    [Teardown]    Close Browser
+
+Is criminal convictions
+    [Arguments]    ${yesno}
+    Select Radio Option By Random    ctl00$ContentPlaceHolder2$ucEtaVisa$rblCriminalRecord    ${RADIDOYN}
+    [Return]    ${value}
+
+Login To Visa Bureau
+    [Arguments]    ${ID}=${EMPTY}    ${Desc}=${EMPTY}    ${Expected}=${EMPTY}    ${email}=${EMPTY}    ${password}=${EMPTY}    ${NeedSetup}=[Yes]
+    Run Keyword If    '${NeedSetup}'=='[Yes]'    SetUp
+    Wait Until Element Is Visible    id=ctl00_ContentPlaceHolder2_LoginBox1_linkPreviousUsers
+    Click Element    id=ctl00_ContentPlaceHolder2_LoginBox1_linkPreviousUsers
+    Wait Until Element Is Visible    id=ctl00_ContentPlaceHolder2_txtEmail
+    Run Keyword If    '${email}'!='{EMPTY}'    Input Text    id=ctl00_ContentPlaceHolder2_txtEmail    ${email}
+    Run Keyword If    '${password}'!='{EMPTY}'    Input Password    id=ctl00_ContentPlaceHolder2_txtPassword    ${password}
+    #Select Checkbox    id=ctl00_ContentPlaceHolder2_cbLogin
+    Click Button    id=ctl00_ContentPlaceHolder2_ibtnLogin
+    ${isStatusLogin}    VerifyLogin    ${Expected}    #${isStatusLogin} ==true: có lỗi
+    Return From Keyword If    '${Expected}'=='${EMPTY}'    ${isStatusLogin}    #${isStatusLogin} ==true: có lỗi; == false: khong co loi
+    Return From Keyword If    '${isStatusLogin}'=='1' and '${NeedSetup}'=='[No]'
+    Run Keyword If    '${isStatusLogin}'=='1' and '${NeedSetup}'=='[Yes]'    Run Keywords    Close Browser    AND    Return From Keyword
+    Element Should Contain    id=ctl00_ContentPlaceHolder2_LoginBox1_lbPreviousUsersMsg2    ${email}    #login successfull
+    Run Keyword If    '${NeedSetup}'=='[Yes]'    Close Browser
+    [Teardown]
+
+Login and Take ETA Visa EA
+    [Arguments]    ${ID}=${EMPTY}    ${Desc}=${EMPTY}    ${Expected}=${EMPTY}    ${criminal}=[Valid]    ${FirstName}=[Valid]    ${MiddleName}=[Valid]
+    ...    ${FamilyName}=[Valid]    ${Othernames}=[Valid]    ${DOB}=[Valid]    ${Gender}=[Valid]    ${COB}=[Valid]    ${PN}=[Valid]
+    ...    ${CPN}=[Valid]    ${PNational}=[Valid]    ${Nati_Ident_Num}=[Valid]    ${OpCtizenship}=[Valid]    ${Citizenship}=[Valid]    ${PID}=[Valid]
+    ...    ${COP}=[Valid]    ${NINum}=[Valid]    ${PofIssue}=[Valid]    ${PExpD}=[Valid]    ${OpFlyBook}=[Valid]    ${DateTime}=[Valid]
+    ...    ${VisaType}=[Valid]    ${deltaDayBook}=[Valid]    ${Add1}=[Valid]    ${Add2}=[Valid]    ${Add3}=[Valid]    ${Country}=[Valid]
+    ...    ${Area}=[Valid]    ${Number}=[Valid]    ${Work1}=[Valid]    ${Work2}=[Valid]    ${Work3}=[Valid]    ${Mobile1}=[Valid]
+    ...    ${Mobile2}=[Valid]    ${Email}=[Valid]
+    SetUp
+    ${StatusLogin}    Login To Visa Bureau    email=${UserValid}    password=${PasswordValid}    NeedSetup=[No]
+    Return From Keyword If    '${StatusLogin}'=='True'    #Loi login, return luon
+    Click Button    id=ctl00_ContentPlaceHolder2_ibtnAddApplicant
+    ${criminalStatus}    Fill Applicant Personal Details    ${criminal}    ${FirstName}    ${MiddleName}    ${FamilyName}    ${Othernames}
+    ...    ${DOB}    ${Gender}    ${COB}
+    Return From Keyword If    '${criminalStatus}'=='[is criminal]'
+    ${PassportNumber}    Fill Applicant Passport Details    ${PN}    ${CPN}    ${PNational}    ${Nati_Ident_Num}    ${OpCtizenship}
+    ...    ${Citizenship}    ${PID}    ${COP}    ${NINum}    ${PofIssue}    ${PExpD}
+    ...    ${OpFlyBook}    ${DateTime}    ${VisaType}    ${deltaDayBook}
+    Fill Applicant Contact Details    ${Add1}    ${Add2}    ${Add3}    ${Country}    ${Area}    ${Number}
+    ...    ${Work1}    ${Work2}    ${Work3}    ${Mobile1}    ${Mobile2}    ${Email}
+    Click Button    id=ctl00_ContentPlaceHolder2_btnVisaSave
+    Return From Keyword If    '${Expected}'=='${EMPTY}'    \    #${isStatusLogin} ==true: có lỗi; == false: khong co loi
+    ${isStatusVerify}    Verify ETA Visa EA Result    ${Expected}
+    Return From Keyword If    '${isStatusVerify}'=='1'
+    Element Should Be Visible    id=ctl00_ContentPlaceHolder2_ibtnAddApplicant
+    #old verify ==> sai
+    #${isStatusVerify}    Verify Applicant Personal Details    ${Expected}    #${isStatusLogin} ==true: có lỗi; == false: khong co loi
+    #${isStatusVerify2}    Run Keyword If    '${isStatusVerify}'=='1'    Verify Applicant Passport Details    ${Expected}
+    #${isStatusVerify3}    Run Keyword If    '${isStatusVerify}'=='1' and '${isStatusVerify2}'=='1'    Verify Applicant Contact Details    ${Expected}
+    #Run Keyword If    '${isStatusVerify}'=='1' and '${isStatusVerify2}'=='1' and '${isStatusVerify3}'=='1'    Element Should Be Visible    id=ctl00_ContentPlaceHolder2_ibtnAddApplicant    #Element Should Contain    id=ctl00_ContentPlaceHolder2_pnlETADataGrid > table:nth-child(1)    ${PassportNumber}
+    [Teardown]    Close Browser
+
+VerifyLogin
+    [Arguments]    ${Expected}
+    ${StatusEmail1}    Run Keyword And Return Status    Element Should Be Visible    id=ctl00_ContentPlaceHolder2_MLEmailAddressValidator1_Txt
+    ${StatusEmail2}    Run Keyword And Return Status    Element Should Be Visible    id=ctl00_ContentPlaceHolder2_MLRequiredTextValidator3_Txt
+    ${StatusEmail3}    Run Keyword And Return Status    Element Should Be Visible    ctl00_ContentPlaceHolder2_valEmailAddressExists_Txt
+    ${StatusPass1}    Run Keyword And Return Status    Element Should Be Visible    id=ctl00_ContentPlaceHolder2_MLRequiredTextValidator1_Txt
+    ${StatusPass2}    Run Keyword And Return Status    Element Should Be Visible    id=ctl00_ContentPlaceHolder2_valPasswordCorrect_Txt
+    ${isError}    Evaluate    ${StatusEmail1} or ${StatusEmail2} or ${StatusEmail3} or ${StatusPass1} or ${StatusPass2}
+    Return From Keyword If    '${Expected}'=='${EMPTY}'    ${isError}    #${isError} ==true: có lỗi; == false: khong co loi, no error message appear
+    Return From Keyword If    '${Expected}' =='fail' and '${isError}'=='True'    1    #End test if the expected of test case is "fail" and page show error message
+    Run Keyword If    '${Expected}'=='pass' and '${is error}'=='True'    Fail    Test case expected to "Pass" but actually page show error message
+    Run Keyword If    '${Expected}'=='fail' and '${is error}'=='False'    Fail    Test case expected to Fail but actually page not show error message
+    #Return From Keyword If    '${Expected}'=='pass' and '${is error}'=='False'    1    #Test case expected to Pass and actually page not show error message
+
+Fill Applicant Personal Details
+    [Arguments]    ${ciminal}=[Valid]    ${FirstName}=[Valid]    ${MiddleName}=[Valid]    ${FamilyName}=[Valid]    ${Othernames}=${EMPTY}    ${DOB}=[Valid]
+    ...    ${Gender}=[Valid]    ${COB}=[Valid]
+    [Documentation]    ${CriminalConvictions}:
+    ...    - default = ${EMPTY}
+    ...    - [Valid]: random
+    ${rdValueCriminal}    Evaluate    random.randint(0, 1)    random,sys
+    ${ValueCriminal}    Set Variable if    '${ciminal}'=='[Valid]'    ${rdValueCriminal}    ${ciminal}
+    Run Keyword If    '${ValueCriminal}'!='${EMPTY}'    Select Radio Button    ctl00$ContentPlaceHolder2$ucEtaVisa$rblCriminalRecord    ${ValueCriminal}
+    Run Keyword If    '${ValueCriminal}'=='1'    Element Should Be Visible    id=CriminalMsg
+    Return From Keyword If    '${ValueCriminal}'=='1' or '${ValueCriminal}'=='${EMPTY}'    [is criminal]
+    #Nếu là người không có tiền án, tiền sự thì chạy tiếp các keyword tiếp theo
+    Fill a input text    id=ctl00_ContentPlaceHolder2_ucEtaVisa_txtPersonFirstName    ${FirstName}    [LETTERS]    8
+    Fill a input text    id=ctl00_ContentPlaceHolder2_ucEtaVisa_txtPersonFirstMiddleName    ${MiddleName}    [LETTERS]
+    Fill a input text    id=ctl00_ContentPlaceHolder2_ucEtaVisa_txtPersonLastName    ${FamilyName}    [LETTERS]    8
+    ${Op_Othernames}    Evaluate    random.randint(0, 1)    random,sys
+    ${Op}    Set Variable If    '${Othernames}'=='[Valid]'    ${Op_Othernames}    ${Othernames}
+    Run Keyword If    '${Op}'!='[EMPTY]'    Select Radio Button    ctl00$ContentPlaceHolder2$ucEtaVisa$rblHasOtherNames    ${Op}
+    ${autoAge}    Evaluate    random.randint(1, 100)    random,sys
+    ${rdAge}    Set Variable If    '${DOB}'=='[Valid]'    ${autoAge}    ${DOB}
+    Run Keyword If    '${rdAge}'!='${EMPTY}'    Select item from Listbox DOB    id=ctl00_ContentPlaceHolder2_ucEtaVisa_MultiSegmentDataEntryPersonDateOfBirth_1    id=ctl00_ContentPlaceHolder2_ucEtaVisa_MultiSegmentDataEntryPersonDateOfBirth_2    id=ctl00_ContentPlaceHolder2_ucEtaVisa_MultiSegmentDataEntryPersonDateOfBirth_3    ${rdAge}
+    Run Keyword If    '${Gender}'!='${EMPTY}'    Select item form Listbox    id=ctl00_ContentPlaceHolder2_ucEtaVisa_ddPersonSex    ${GENDERS}    ${Gender}
+    Run Keyword If    '${COB}'!='${EMPTY}'    Select Country of Birth
+
+Fill Applicant Passport Details
+    [Arguments]    ${PN}=[Valid]    ${CPN}=[Valid]    ${PNational}=[Valid]    ${Nati_Ident_Num}=[Valid]    ${OpCitizenship}=[Valid]    ${Citizenship}=[Valid]
+    ...    ${PID}=[Valid]    ${COP}=[Valid]    ${NINum}=[Valid]    ${PofIssue}=[Valid]    ${PExpD}=[Valid]    ${OpFlyBook}=[Valid]
+    ...    ${DateTime}=[Valid]    ${VisaType}=[Valid]    ${deltaDayBook}=[Valid]
+    ${strPPNumber}    Fill a input text    id=ctl00_ContentPlaceHolder2_ucEtaVisa_TextboxPassportNumber    ${PN}    [LETTERS][NUMBERS]    8
+    ${strConfirmPP}    Set Variable If    '${CPN}'=='[Valid]'    ${strPPNumber}    ${CPN}
+    Run Keyword If    '${strConfirmPP}'!='${EMPTY}'    Input Text    id=ctl00_ContentPlaceHolder2_ucEtaVisa_TextboxConfirmyourPassportNumber    ${strConfirmPP}
+    Run Keyword If    '${PNational}'!='${EMPTY}'    Select Passport Nationality
+    #${rdcitizen}    Set Variable    1
+    ${rdcitizen}    Evaluate    random.randint(0, 1)    random,sys
+    ${value citizen}    Set Variable If    '${OpCitizenship}'=='[Valid]'    ${rdcitizen}    ${OpCitizenship}
+    Select Radio Button    ctl00$ContentPlaceHolder2$ucEtaVisa$rblHasOtherCitizenships    ${value citizen}
+    Run Keyword If    ${value citizen}==1    Run Keywords    Element Should Be Visible    id=ctl00_ContentPlaceHolder2_ucEtaVisa_ddlOtherCitizenship1    AND    Select Other citizen frome List
+    ...    ${Citizenship}
+    Run Keyword If    '${COP}'!='${EMPTY'    Select Country of Passport    ${COP}
+    ${National Identity Number}    Run Keyword And Return Status    Element Should Be Visible    id=ctl00_ContentPlaceHolder2_ucEtaVisa_txtNationalIdentityNumber    #National Identity Number require
+    Run Keyword If    ${National Identity Number}==True and '${Nati_Ident_Num}'!='${EMPTY}'    Fill a input text    id=ctl00_ContentPlaceHolder2_ucEtaVisa_txtNationalIdentityNumber    ${Nati_Ident_Num}    [LETTERS][NUMBERS]    10
+    Fill a input text    id=ctl00_ContentPlaceHolder2_ucEtaVisa_TextboxPassportIssuingAuthority    ${PofIssue}    [LETTERS]    8
+    Run Keyword If    '${PID}'!='${EMPTY}'    Select Passport Issue    ${PID}
+    Run Keyword If    '${PExpD}'!='${EMPTY}'    Select Passport Expiry    ${PExpD}
+    ${rdFlyghtBook}    Evaluate    random.randint(0, 1)    random,sys
+    #${rdFlyghtBook}    Set Variable    1
+    ${valueFlyghtBook}    Set Variable If    '${OpFlyBook}'=='[Valid]'    ${rdFlyghtBook}    ${OpFlyBook}
+    Run Keyword If    '${valueFlyghtBook}'!='${EMPTY}'    Select Radio Button    ctl00$ContentPlaceHolder2$ucEtaVisa$rblFlightBookedToAustralia    ${valueFlyghtBook}
+    Run Keyword If    '${valueFlyghtBook}'!='${EMPTY}' \ and '${deltaDayBook}'!='${EMPTY}'    Select Day of Future Fligth Book    ${deltaDayBook}    ${valueFlyghtBook}
+    Run Keyword If    '${VisaType}'!='${EMPTY}'    Select Visa Type    ${VisaType}
+    Return From Keyword    ${strPPNumber}
+
+Fill Applicant Contact Details
+    [Arguments]    ${Add1}=[Valid]    ${Add2}=[Valid]    ${Add3}=[Valid]    ${Country}=[Valid]    ${Area}=[Valid]    ${Number}=[Valid]
+    ...    ${Work1}=[Valid]    ${Work2}=[Valid]    ${Work3}=[Valid]    ${Mobile1}=[Valid]    ${Mobile2}=[Valid]    ${Email}=[Valid]
+    [Documentation]    . [Valid]: Tự động sinh dữ liệu valid
+    ...    . None: Không chọn dữ liệu hoặc không nhập dữ liệu
+    Fill a input text    id=ctl00_ContentPlaceHolder2_ucEtaVisa_txtPersonalAddress1    ${Add1}    [LETTERS][NUMBERS]
+    Fill a input text    id=ctl00_ContentPlaceHolder2_ucEtaVisa_txtPersonalAddress2    ${Add2}    [LETTERS][NUMBERS]
+    Fill a input text    id=ctl00_ContentPlaceHolder2_ucEtaVisa_txtPersonalAddress3    ${Add3}    [LETTERS][NUMBERS]
+    Fill a input text    id=ctl00_ContentPlaceHolder2_ucEtaVisa_txtPhoneHomeCountry    ${Country}    [NUMBERS]
+    Fill a input text    id=ctl00_ContentPlaceHolder2_ucEtaVisa_txtPhoneHomeArea    ${Area}    [NUMBERS]
+    Fill a input text    id=ctl00_ContentPlaceHolder2_ucEtaVisa_txtPhoneHomeNumber    ${Number}    [NUMBERS]
+    Fill a input text    id=ctl00_ContentPlaceHolder2_ucEtaVisa_txtDayNumCountry    ${Work1}    [NUMBERS]
+    Fill a input text    id=ctl00_ContentPlaceHolder2_ucEtaVisa_txtDayNumArea    ${Work2}    [NUMBERS]
+    Fill a input text    id=ctl00_ContentPlaceHolder2_ucEtaVisa_txtDayNumNumber    ${Work3}    [NUMBERS]
+    Fill a input text    id=ctl00_ContentPlaceHolder2_ucEtaVisa_txtPersonalNumberMobileCountry    ${Mobile1}    [NUMBERS]
+    Fill a input text    id=ctl00_ContentPlaceHolder2_ucEtaVisa_txtPersonalNumberMobile    ${Mobile2}    [NUMBERS]
+    Generate and Fill a email    id=ctl00_ContentPlaceHolder2_ucEtaVisa_txtPersonalEmail    ${Email}
+
+Verify ETA Visa EA Result
+    [Arguments]    ${Expected}
+    #Verify Personal Detail
+    ${CriminalConvictions}    Run Keyword And Return Status    Elements should be visible    id=ctl00_ContentPlaceHolder2_ucEtaVisa_RequiredListValidator8_Txt    id=ctl00_ContentPlaceHolder2_Validationsummary_further_details
+    ${FirstName}    Run Keyword And Return Status    Elements should be visible    id=ctl00_ContentPlaceHolder2_ucEtaVisa_valPersonFirstName1_Txt    id=ctl00_ContentPlaceHolder2_Validationsummary_further_details
+    ${MiddleName}    Run Keyword And Return Status    Elements should be visible    id=ctl00_ContentPlaceHolder2_ucEtaVisa_CharacterValidator2_Txt    id=ctl00_ContentPlaceHolder2_Validationsummary_further_details
+    ${FamilyName}    Run Keyword And Return Status    Elements should be visible    id=ctl00_ContentPlaceHolder2_ucEtaVisa_valPersonLastName_Txt    id=ctl00_ContentPlaceHolder2_Validationsummary_further_details
+    ${otherName}    Run Keyword And Return Status    Elements should be visible    id=ctl00_ContentPlaceHolder2_ucEtaVisa_RequiredListValidatorOtherNames_Txt    id=ctl00_ContentPlaceHolder2_Validationsummary_further_details
+    ${DOB}    Run Keyword And Return Status    Elements should be visible    id=ctl00_ContentPlaceHolder2_ucEtaVisa_DataTypeCheckValidator1_Txt    id=ctl00_ContentPlaceHolder2_Validationsummary_further_details
+    ${Gender}    Run Keyword And Return Status    Elements should be visible    id=ctl00_ContentPlaceHolder2_ucEtaVisa_RequiredListValidatorddPersonSex_Txt    id=ctl00_ContentPlaceHolder2_Validationsummary_further_details
+    ${CountryOfBirth}    Run Keyword And Return Status    Elements should be visible    id=ctl00_ContentPlaceHolder2_ucEtaVisa_Requiredlistvalidator1_Txt    id=ctl00_ContentPlaceHolder2_Validationsummary_further_details
+    #Passport Detail
+    ${PassportNumber1}    Run Keyword And Return Status    Elements should be visible    id=ctl00_ContentPlaceHolder2_ucEtaVisa_Requiredtextvalidator3_Txt    id=ctl00_ContentPlaceHolder2_Validationsummary_further_details
+    ${PassportNumber2}    Run Keyword And Return Status    Elements should be visible    id=ctl00_ContentPlaceHolder2_ucEtaVisa_CompareValidator1_Txt    id=ctl00_ContentPlaceHolder2_Validationsummary_further_details
+    ${ConfirmPassportNum}    Run Keyword And Return Status    Elements should be visible    id=ctl00_ContentPlaceHolder2_ucEtaVisa_Requiredtextvalidator4_Txt    id=ctl00_ContentPlaceHolder2_Validationsummary_further_details
+    ${PPortNationality}    Run Keyword And Return Status    Elements should be visible    id=ctl00_ContentPlaceHolder2_ucEtaVisa_Requiredlistvalidator2_Txt    id=ctl00_ContentPlaceHolder2_Validationsummary_further_details
+    ${National Identity Number}    Run Keyword And Return Status    Elements should be visible    id=ctl00_ContentPlaceHolder2_ucEtaVisa_RequiredTextValidatorNationalIdentityNumber_Txt    id=ctl00_ContentPlaceHolder2_Validationsummary_further_details
+    ${Citizenship}    Run Keyword And Return Status    Elements should be visible    id=ctl00_ContentPlaceHolder2_ucEtaVisa_cksHasOtherCitizenships_Txt    id=ctl00_ContentPlaceHolder2_Validationsummary_further_details
+    ${OtherCityzenship}    Run Keyword And Return Status    Elements should be visible    id=ctl00_ContentPlaceHolder2_ucEtaVisa_RequiredListValidator9_Txt    id=ctl00_ContentPlaceHolder2_Validationsummary_further_details
+    ${IssueDate}    Run Keyword And Return Status    Elements should be visible    id=ctl00_ContentPlaceHolder2_ucEtaVisa_ctvvPassportIssueDate_Txt    id=ctl00_ContentPlaceHolder2_Validationsummary_further_details
+    ${IssueDate2}    Run Keyword And Return Status    Elements should be visible    id=ctl00_ContentPlaceHolder2_ucEtaVisa_DataTypeCheckValidator2_Txt    id=ctl00_ContentPlaceHolder2_Validationsummary_further_details
+    ${CountryOfPassport1}    Run Keyword And Return Status    Elements should be visible    id=ctl00_ContentPlaceHolder2_ucEtaVisa_Requiredlistvalidator3_Txt    id=ctl00_ContentPlaceHolder2_Validationsummary_further_details
+    ${CountryOfPassport2}    Run Keyword And Return Status    Elements should be visible    id=ctl00_ContentPlaceHolder2_ucEtaVisa_Requiredlistvalidator5_Txt    id=ctl00_ContentPlaceHolder2_Validationsummary_further_details
+    ${PlaceOfIssue}    Run Keyword And Return Status    Elements should be visible    id=ctl00_ContentPlaceHolder2_ucEtaVisa_Requiredtextvalidator1_Txt    id=ctl00_ContentPlaceHolder2_Validationsummary_further_details
+    ${ExpiryDate1}    Run Keyword And Return Status    Elements should be visible    id=ctl00_ContentPlaceHolder2_ucEtaVisa_DataTypeCheckValidator3_Txt    id=ctl00_ContentPlaceHolder2_Validationsummary_further_details
+    ${ExpiryDate2}    Run Keyword And Return Status    Elements should be visible    id=ctl00_ContentPlaceHolder2_ucEtaVisa_ctvvPassportExpiryDate_Txt    id=ctl00_ContentPlaceHolder2_Validationsummary_further_details
+    ${FlightBook}    Run Keyword And Return Status    Elements should be visible    id=ctl00_ContentPlaceHolder2_ucEtaVisa_RequiredListValidator16_Txt    id=ctl00_ContentPlaceHolder2_Validationsummary_further_details
+    ${DateEntry1}    Run Keyword And Return Status    Elements should be visible    id=ctl00_ContentPlaceHolder2_ucEtaVisa_DataTypeCheckValidator4_Txt    id=ctl00_ContentPlaceHolder2_Validationsummary_further_details
+    ${DateEntry2}    Run Keyword And Return Status    Elements should be visible    id=ctl00_ContentPlaceHolder2_ucEtaVisa_ctvvDeptDate_Txt    id=ctl00_ContentPlaceHolder2_Validationsummary_further_details
+    ${scheduleEntry1}    Run Keyword And Return Status    Elements should be visible    id=ctl00_ContentPlaceHolder2_ucEtaVisa_DataTypeCheckValidator15_Txt    id=ctl00_ContentPlaceHolder2_Validationsummary_further_details
+    ${scheduleEntry2}    Run Keyword And Return Status    Elements should be visible    id=ctl00_ContentPlaceHolder2_ucEtaVisa_MultiConditionValidator2_Txt    id=ctl00_ContentPlaceHolder2_Validationsummary_further_details
+    ${VisaType}    Run Keyword And Return Status    Elements should be visible    id=ctl00_ContentPlaceHolder2_ucEtaVisa_RequiredListValidator4_Txt    id=ctl00_ContentPlaceHolder2_Validationsummary_further_details
+    #Contact Detail
+    ${StatusAddress1}    Run Keyword And Return Status    Elements should be visible    id=ctl00_ContentPlaceHolder2_ucEtaVisa_RequiredTextValidator7_Txt    id=ctl00_ContentPlaceHolder2_Validationsummary_further_details
+    ${StatusAddress2}    Run Keyword And Return Status    Elements should be visible    id=ctl00_ContentPlaceHolder2_ucEtaVisa_RequiredTextValidator2_Txt    id=ctl00_ContentPlaceHolder2_Validationsummary_further_details
+    ${StatusAddress3}    Run Keyword And Return Status    Elements should be visible    id=ctl00_ContentPlaceHolder2_ucEtaVisa_RequiredTextValidator5_Txt    id=ctl00_ContentPlaceHolder2_Validationsummary_further_details
+    ${HomePhoneNo_country}    Run Keyword And Return Status    Elements should be visible    id=ctl00_ContentPlaceHolder2_ucEtaVisa_valHomeMulti_Txt    id=ctl00_ContentPlaceHolder2_Validationsummary_further_details
+    ${WorkPhoneNo1}    Run Keyword And Return Status    Elements should be visible    id=ctl00_ContentPlaceHolder2_ucEtaVisa_valWorkMulti_Txt    id=ctl00_ContentPlaceHolder2_Validationsummary_further_details
+    ${MobilePhoneNo1}    Run Keyword And Return Status    Elements should be visible    id=ctl00_ContentPlaceHolder2_ucEtaVisa_Multiconditionvalidator1_Txt    id=ctl00_ContentPlaceHolder2_Validationsummary_further_details
+    ${email1}    Run Keyword And Return Status    Elements should be visible    id=ctl00_ContentPlaceHolder2_ucEtaVisa_EmailAddressValidator1_Txt    id=ctl00_ContentPlaceHolder2_Validationsummary_further_details
+    ${email2}    Run Keyword And Return Status    Elements should be visible    id=ctl00_ContentPlaceHolder2_ucEtaVisa_RequiredTextValidator10_Txt    id=ctl00_ContentPlaceHolder2_Validationsummary_further_details
+    ${isError}    Evaluate    ${CriminalConvictions} or ${FirstName} or ${MiddleName} or ${FamilyName} or ${otherName} or ${DOB} or ${Gender} or ${CountryOfBirth} or ${PassportNumber1} or ${PassportNumber2} or ${ConfirmPassportNum} or ${PPortNationality} or ${National Identity Number} or ${Citizenship} or ${OtherCityzenship} or ${IssueDate} or ${IssueDate2} or ${CountryOfPassport1} or ${CountryOfPassport2} or ${PlaceOfIssue} or ${ExpiryDate1} or ${ExpiryDate2} or ${FlightBook} or ${DateEntry1} or ${DateEntry2} or ${scheduleEntry1} or ${scheduleEntry2} or ${VisaType} or ${StatusAddress1} or ${StatusAddress2} or ${StatusAddress3} or ${HomePhoneNo_country} or ${WorkPhoneNo1} or ${MobilePhoneNo1} or ${email1} or ${email2}
+    Return From Keyword If    '${Expected}'=='${EMPTY}'    ${isError}    #${isError} ==true: có lỗi; == false: khong co loi, no error message appear
+    Return From Keyword If    '${Expected}' =='fail' and '${isError}'=='True'    1    #End test if the expected of test case is "fail" and page show error message
+    Run Keyword If    '${Expected}'=='pass' and '${is error}'=='True'    Fail    Test case expected to "Pass" but actually page show error message
+    Run Keyword If    '${Expected}'=='fail' and '${is error}'=='False'    Fail    Test case expected to Fail but actually page not show error message
+    #Return From Keyword If    '${Expected}'=='pass' and '${is error}'=='False'    1    #Test case expected to Pass and actually page not show error message
+
+Verify Register for a new ETA account
+    [Arguments]    ${Expected}
+    ${is selectTitle}    Get value drop down list    ctl00_ContentPlaceHolder2_ucPersonalInfoBasic_ddPersonTitle    value
+    Run Keyword If    ${is selectTitle}==-1    Elements should be visible    id=ctl00_ContentPlaceHolder2_ucPersonalInfoBasic_valPersonTitle1_Txt    id=ctl00_ContentPlaceHolder2_Validationsummary_personelinformation
+    #Verify Gender
+    ${is selectGender}    Get value drop down list    ctl00_ContentPlaceHolder2_ucPersonalInfoBasic_ddPersonSex    value
+    Run Keyword If    ${is selectGender}==-1    Elements should be visible    id=ctl00_ContentPlaceHolder2_ucPersonalInfoBasic_RequiredListValidatorddPersonSex_Txt    id=ctl00_ContentPlaceHolder2_Validationsummary_personelinformation
+    #Verify First Name, Last Name
+    ${is input First Name}    Get value input Text    id=ctl00_ContentPlaceHolder2_ucPersonalInfoBasic_txtPersonFirstName
+    Run Keyword If    '${is input First Name}'=='${EMPTY}'    Elements should be visible    id=ctl00_ContentPlaceHolder2_ucPersonalInfoBasic_valPersonFirstName1    id=ctl00_ContentPlaceHolder2_Validationsummary_personelinformation
+    ${is input Last Name}    Get value input Text    id=ctl00_ContentPlaceHolder2_ucPersonalInfoBasic_txtPersonLastName
+    Run Keyword If    '${is input Last Name}'=='${EMPTY}'    Elements should be visible    id=ctl00_ContentPlaceHolder2_ucPersonalInfoBasic_valPersonLastName_Txt    id=ctl00_ContentPlaceHolder2_Validationsummary_personelinformation
+    #Verify Country of Residence
+    ${is select Country}    Get value drop down list    ctl00_ContentPlaceHolder2_ucPersonalInfoBasic_ddlResidentCountry    value
+    Run Keyword If    ${is select Country}==-1    Elements should be visible    id=ctl00_ContentPlaceHolder2_ucPersonalInfoBasic_Requiredlistvalidator6_Txt    id=ctl00_ContentPlaceHolder2_Validationsummary_personelinformation
+    #Verify Date of Birth
+    ${is select Birth day}    Get value drop down list    ctl00_ContentPlaceHolder2_ucPersonalInfoBasic_MultiSegmentDataEntryBirthDate_1    value
+    Run Keyword If    ${is select Birth day}==-1    Elements should be visible    id=ctl00_ContentPlaceHolder2_ucPersonalInfoBasic_DataTypeCheckValidator1_Txt    id=ctl00_ContentPlaceHolder2_Validationsummary_personelinformation
+    #Verify contact
+    ${is contact1}    Get value input Text    id=ctl00_ContentPlaceHolder2_ucPersonalInfoBasic_txtPhoneDaytimeNumber
+    ${is contact2}    Get value input Text    id=ctl00_ContentPlaceHolder2_ucPersonalInfoBasic_txtPersonalNumberMobile
+    Run Keyword If    '${is contact1}'=='${EMPTY}'    Elements should be visible    id=ctl00_ContentPlaceHolder2_ucPersonalInfoBasic_txtPersonalNumberMobile    id=ctl00_ContentPlaceHolder2_Validationsummary_personelinformation
+    Run Keyword If    '${is contact1}'!='${EMPTY}' and '${Expected}' =='Please enter a valid number'    Element Should Contain    id=ctl00_ContentPlaceHolder2_ucPersonalInfoBasic_txtPersonalNumberMobile    [Please enter a valid number]
+    Run Keyword If    '${is contact2}'=='${EMPTY}'    Element Should Not Be Visible    id=ctl00_ContentPlaceHolder2_ucPersonalInfoBasic_MLMultiConditionValidatorExtended1_Txt
+    Run Keyword If    '${is contact2}'!='${EMPTY}' and '${Expected}' =='Please enter a valid number'    Element Should Contain    id=ctl00_ContentPlaceHolder2_ucPersonalInfoBasic_MLMultiConditionValidatorExtended1_Txt    [Please enter a valid number]
+    log    ${Expected}
+    #Verify email and confirm email
+    ${is email}    Get value input Text    id=ctl00_ContentPlaceHolder2_ucPersonalInfoBasic_txtPersonalEmail
+    ${is cf email}    Get value input Text    id=ctl00_ContentPlaceHolder2_ucPersonalInfoBasic_txtPersonalEmailRetype
+    Run Keyword If    '${is email}'=='${EMPTY}'    Elements should be visible    id=ctl00_ContentPlaceHolder2_ucPersonalInfoBasic_valPersonalEmail_Txt    id=ctl00_ContentPlaceHolder2_Validationsummary_personelinformation
+    Run Keyword If    '${is email}'!='${EMPTY}' and '${Expected}' =='Please enter a valid email address'    Element Should Contain    id=ctl00_ContentPlaceHolder2_ucPersonalInfoBasic_EmailAddressValidator1_Txt    [Please enter a valid email address]
+    Run Keyword If    '${is cf email}'=='${EMPTY}'    Elements should be visible    id=ctl00_ContentPlaceHolder2_ucPersonalInfoBasic_valPersonalEmailRetype_Txt    id=ctl00_ContentPlaceHolder2_Validationsummary_personelinformation
+    Run Keyword If    '${is cf email}'!='${EMPTY}' and '${Expected}' =='Confirm email'    Element Should Contain    id=ctl00_ContentPlaceHolder2_ucPersonalInfoBasic_CompareTwoFieldsValidator1_Txt    Confirm email
+    #Verify nominate Password
+    ${is nominate Pass}    Get value input Text    id=ctl00_ContentPlaceHolder2_ucPersonalInfoBasic_txtPassword
+    Run Keyword If    '${is nominate Pass}'=='${EMPTY}'    Elements should be visible    id=ctl00_ContentPlaceHolder2_ucPersonalInfoBasic_valPassword_Txt    id=ctl00_ContentPlaceHolder2_Validationsummary_personelinformation
+    Run Keyword If    '${is nominate Pass}'!='${EMPTY}' and '${Expected}' =='Please enter a valid password'    Run Keywords    Element Should Be Visible    id=ctl00_ContentPlaceHolder2_ucPersonalInfoBasic_valPassword_Txt    AND    Element Should Contain
+    ...    id=ctl00_ContentPlaceHolder2_ucPersonalInfoBasic_valPassword_Txt    Please enter a valid password

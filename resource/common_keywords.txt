@@ -1,0 +1,142 @@
+*** Settings ***
+Library           Collections
+Library           Selenium2Library    10    5    Capture Page Screenshot
+Library           String
+Variables         Variable.py
+Library           ../libs/VisaBureauLibrary.py
+Resource          ETAVisa_keywords.txt
+
+*** Keywords ***
+Get value form Dictionary by random
+    [Arguments]    ${dicName}    ${key}=[Valid]
+    ${value}    Get Random Value From Dict    ${dicName}
+    Return From Keyword If    '${key}'=='[Valid]'    ${value}
+    ${value}    Get From Dictionary    ${dicName}    ${key}
+    Return From Keyword    ${value}
+    [Return]    ${value}
+
+Get DOB auto by age
+    [Arguments]    ${Age}    ${PastDay}=0
+    [Documentation]    - lấy về quá khứ, cách ngày hiện tại số ngày là: ${PastDay} ngày
+    ${curDay}    Get Time    day
+    ${curDay}    Evaluate    ${curDay} - ${PastDay}
+    ${curMonth}    Get Time    month
+    ${curYear}    Get Time    year
+    ${oldYear}    Evaluate    ${curYear}-${Age}
+    ${is leap year}    Is Leap Year    ${oldYear}
+    ${curDay}    Set Variable If    ${is leap year}=='False' and ${curDay}==29 & ${curMonth}==2    28    ${curDay}
+    ${curDayTemp1}    Evaluate    str(${curDay})
+    ${curDayTemp}    Catenate    SEPARATOR=    \    ${curDay}
+    ${strDay}    Set Variable If    ${curDay}<10    ${curDayTemp}    ${curDayTemp1}
+    #Dieu chinh chuoi thang
+    ${curMonthTemp1}    Evaluate    str(${curMonth})
+    ${curMonthTemp2}    Catenate    SEPARATOR=    \    ${curMonth}
+    ${strMonth}    Set Variable If    ${curMonth}<10    ${curMonthTemp2}    ${curMonthTemp1}
+    ${oldYear}    Evaluate    str(${oldYear})
+    @{DOB}    Set Variable    ${strDay}    ${strMonth}    ${oldYear}
+    #log    @{DOB}[1]
+    Return From Keyword    @{DOB}
+    [Return]    ${DOB}
+
+Get value drop down list
+    [Arguments]    ${locator}    ${Tag}
+    ${value}    Get Element Attribute    ${locator}@${Tag}
+    Return From Keyword    ${value}
+
+Get value input Text
+    [Arguments]    ${locator}
+    ${value}    Get Value    ${locator}
+    Return From Keyword    ${value}
+
+Get Future Date
+    [Arguments]    ${FutureYear}
+    ${curDay}    Get Time    day
+    ${curMonth}    Get Time    month
+    ${curYear}    Get Time    year
+    ${FYear}    Evaluate    ${curYear}+${FutureYear}
+    ${is leap year}    Is Leap Year    ${FYear}
+    ${curDay}    Set Variable If    ${is leap year}=='True' and ${curDay}==28 & ${curMonth}==2    29    ${curDay}
+    ${curDayTemp1}    Evaluate    str(${curDay})
+    ${curDayTemp}    Catenate    SEPARATOR=    \    ${curDay}
+    ${strDay}    Set Variable If    ${curDay}<10    ${curDayTemp}    ${curDayTemp1}
+    #Dieu chinh chuoi thang
+    ${curMonthTemp1}    Evaluate    str(${curMonth})
+    ${curMonthTemp2}    Catenate    SEPARATOR=    \    ${curMonth}
+    ${strMonth}    Set Variable If    ${curMonth}<10    ${curMonthTemp2}    ${curMonthTemp1}
+    ${FYear}    Evaluate    str(${FYear})
+    @{DOF}    Set Variable    ${strDay}    ${strMonth}    ${FYear}
+    Return From Keyword    @{DOF}
+    [Return]    @{DOF}
+
+Get Length List Box
+    [Arguments]    ${Location}    ${TextRemove}
+    ${ListYear}    Get List Items    ${Location}
+    Remove Values From List    ${ListYear}    ${TextRemove}
+    ${length}    Get Length    ${ListYear}
+    #Return From Keyword    ${length}
+    @{infor}    Set Variable    ${ListYear}    ${length}
+    Return From Keyword    @{infor}
+    [Return]    @{infor}
+
+Select item form Listbox
+    [Arguments]    ${locator}    ${dicName}    ${key}=[Valid]
+    Wait Until Element Is Visible    ${locator}
+    ${value}    Get value form Dictionary by random    ${dicName}    ${key}
+    Select From List By Value    ${locator}    ${value}
+
+Select item from Listbox DOB
+    [Arguments]    ${locator1}    ${locator2}    ${locator3}    ${Age}    ${PastDay}=0
+    ${containStatus}    Run Keyword And Return Status    Should Contain    ${Age}    /
+    @{arrDOBInput}    Run Keyword If    ${containStatus}==True    Split String    ${Age}    /
+    ${DOBInput}    Set Variable    @{arrDOBInput}
+    @{arrRndvalue}    Run Keyword Unless    ${containStatus}==True    Get DOB auto by age    ${Age}    ${PastDay}
+    ${rndValue}    Set Variable    @{arrRndvalue}
+    ${finalValue}    Set Variable If    ${containStatus}==True    ${DOBInput}    ${rndValue}
+    @{arrvalue}    Set Variable    ${finalValue}
+    Select From List By Value    ${locator1}    @{arrvalue}[0]
+    Select From List By Value    ${locator2}    @{arrvalue}[1]
+    Select From List By Value    ${locator3}    @{arrvalue}[2]
+
+Select Radio Option By Random
+    [Arguments]    ${GroupName}    ${dicName}    ${key}=[any]
+    ${value}    Get value form Dictionary by random    ${dicName}    ${key}
+    Select Radio Button    ${GroupName}    ${value}
+
+Select item from Listbox FOB
+    [Arguments]    ${locator1}    ${locator2}    ${locator3}    ${Fyear}
+    ${containStatus}    Run Keyword And Return Status    Should Contain    ${Fyear}    /
+    @{arrFODInput}    Run Keyword If    ${containStatus}==True    Split String    ${Fyear}    /
+    ${FODInput}    Set Variable    @{arrFODInput}
+    #@{arrvalue}    Get Future Date    ${Fyear}
+    @{arrRndvalue}    Run Keyword Unless    ${containStatus}==True    Get Future Date    ${Fyear}
+    ${rndValue}    Set Variable    @{arrRndvalue}
+    ${finalValue}    Set Variable If    ${containStatus}==True    ${FODInput}    ${rndValue}
+    @{arrvalue}    Set Variable    ${finalValue}
+    Select From List By Value    ${locator1}    @{arrvalue}[0]
+    Select From List By Value    ${locator2}    @{arrvalue}[1]
+    Select From List By Value    ${locator3}    @{arrvalue}[2]
+
+Fill a input text
+    [Arguments]    ${locator}=${EMPTY}    ${value}=${EMPTY}    ${randomType}=[LETTERS]    ${length}=25
+    ${rndstring}    Generate Random String    ${length}    ${randomType}
+    ${text}    Set Variable If    '${value}'=='[Valid]'    ${rndstring}    ${value}
+    Run Keyword If    '${value}'!='${EMPTY}'    Input Text    ${locator}    ${text}
+    Return From Keyword    ${text}
+
+Generate and Fill a email
+    [Arguments]    ${locator}    ${Email}
+    ${NameEmail}    Generate Random String    9    [LETTERS][NUMBERS]
+    ${AutoEmail}    Catenate    SEPARATOR=    ${NameEmail}    @gmail.com
+    ${AutoEmail}    Set Variable If    '${Email}'=='[Valid]'    ${AutoEmail}    ${Email}
+    Run Keyword If    '${Email}'!='${EMPTY}'    Input Text    ${locator}    ${AutoEmail}
+    Return From Keyword    ${AutoEmail}
+
+Verify Drop down list
+    [Arguments]    ${locator}    ${Tag}    ${LocatorOfelementVisible1}    ${LocatorOfelementVisible2}
+    ${is selectTitle}    Get value drop down list    ${locator}    ${Tag}
+    Run Keyword If    ${is selectTitle}==-1    Elements should be visible    ${LocatorOfelementVisible2}    ${LocatorOfelementVisible2}
+
+Elements should be visible
+    [Arguments]    ${location1}    ${location2}
+    Element Should Be Visible    ${location1}
+    Element Should Be Visible    ${location2}
